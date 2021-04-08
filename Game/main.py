@@ -1,5 +1,5 @@
 import turtle
-import mapHandler
+from Game import mapHandler
 
 screen = turtle.Screen()
 

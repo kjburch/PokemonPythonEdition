@@ -1,7 +1,5 @@
-import time
-
 import PIL
-import tile
+from Game import tile
 import csv
 import os
 
@@ -30,7 +28,7 @@ def buildTileGrid():
             tempGrid.append([])
 
     # adds csv info to the temp Grid so that the tile objects can be properly built
-    for filename in os.listdir("./Images/TileSet/csv"):
+    for filename in os.listdir("Images/TileSet/csv"):
         with open("./Images/TileSet/csv/"+filename, encoding="UTF-8-sig") as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             heightCount = 0
