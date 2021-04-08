@@ -2,7 +2,7 @@ from math import floor
 from operator import itemgetter
 from tkinter import *
 from tkinter.ttk import Frame, Button, Label
-from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import askopenfilename, asksaveasfile
 from PIL import ImageTk, Image, ImageDraw
 
 tileSize = 16
@@ -18,6 +18,7 @@ for i in range(0, mapImageBase.size[0], tileSize):
 mapImage = mapImageBase.copy()
 previousMaps = []
 nextMaps = []
+fileName = None
 
 
 class Example(Frame):
@@ -113,13 +114,15 @@ class Example(Frame):
             tileX = floor(x / 400 * tempImage.size[0] / tileSize)
             tileY = floor(y / 400 * tempImage.size[1] / tileSize)
 
-            if (tileX,tileY) not in currentTileCord:
+            if (tileX, tileY) not in currentTileCord:
                 currentTileCord.append((tileX, tileY))
 
                 for tile in currentTileCord:
                     tempDraw.rectangle(
-                        ((tile[0] * tileSize-1, tile[1] * tileSize-1), ((tile[0]+1) * tileSize, (tile[1]+1) * tileSize)),
-                        width=1, outline=10)
+                        (
+                            (tile[0] * tileSize-1, tile[1] * tileSize-1),
+                            ((tile[0]+1) * tileSize, (tile[1]+1) * tileSize)),
+                        width=1, outline=0)
 
                 tempImage = tempImage.resize((400, 400))
                 tempImage = ImageTk.PhotoImage(tempImage)
@@ -202,22 +205,33 @@ class Example(Frame):
         brushButton = Button(self, text="Empty Brush", command=emptyBrush)
         brushButton.grid(row=5, column=3)
 
-        # -------------------------------------------------------------------------------------------------------------
-        # Level Name
-        nameLabel = Label(self, text="Level name: ")
-        nameLabel.grid(row=3, column=7)
-        # Level Name Textbox
-        name = Text(self, height=1, width=7)
-        name.grid(row=3, column=8)
-
         # --------------------------------------------------------------------------------------------------------------
         # Saves the Map
         def saveMap():
-            print("Save")
+            global fileName
+            if fileName is None:
+                files = [('GIF Files', '*GIF')]
+                fileName = asksaveasfile(filetypes=files, defaultextension=files).name
+                mapImage.save(fileName)
+            else:
+                print("Saving to", fileName)
+                mapImage.save(fileName)
 
         # Saves the Map
         saveButton = Button(self, text="Save Map", command=saveMap)
         saveButton.grid(row=4, column=7)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # Saves the Map As a Certain Name
+        def saveMapAs():
+            global fileName
+            files = [('GIF Files', '*GIF')]
+            fileName = asksaveasfile(filetypes=files, defaultextension=files).name
+            mapImage.save(fileName)
+
+        # Saves the Map
+        saveAsButton = Button(self, text="Save Map As", command=saveMapAs)
+        saveAsButton.grid(row=3, column=7)
 
         # ---------------------------------------------------------------------------------------------------------------
         # Resets the Map
@@ -250,10 +264,9 @@ class Example(Frame):
         # --------------------------------------------------------------------------------------------------------------
         # Choose a preexisting Map
         def chooseMap():
-            global previousMaps
-            global mapImageBase, mapImage
-            mapFilename = askopenfilename()
-            mapImage = Image.open(mapFilename).resize((400, 400))
+            global previousMaps, fileName, mapImageBase, mapImage
+            fileName = askopenfilename()
+            mapImage = Image.open(fileName).resize((400, 400))
             mapTempImage = ImageTk.PhotoImage(mapImage)
             levelMap.img = mapTempImage
             levelMap['image'] = mapTempImage
