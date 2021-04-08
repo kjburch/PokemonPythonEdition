@@ -16,6 +16,8 @@ for i in range(0, mapImageBase.size[0], tileSize):
     draw.line(((i, 0), (i, mapImageBase.size[1])), fill=128, width=1)
     draw.line(((0, i), (mapImageBase.size[0], i)), fill=128, width=1)
 mapImage = mapImageBase.copy()
+previousMaps = []
+nextMaps = []
 
 
 class Example(Frame):
@@ -46,13 +48,20 @@ class Example(Frame):
         levelMap['image'] = img
 
         def paintMap(event):
-            global currentTileImg
+            global currentTileImg, nextMaps
             if len(currentTileImg) > 0:
 
                 x, y = event.x, event.y
                 print("Location Clicked:", '{}, {}'.format(x, y))
 
                 tempImage = mapImage
+                previousMaps.append(tempImage.copy())
+                nextMaps = []
+
+                if len(previousMaps) > 25:
+                    previousMaps.pop(0)
+                if len(nextMaps) > 25:
+                    nextMaps.pop(0)
 
                 tileX = floor(x / tileSize)
                 tileY = floor(y / tileSize)
@@ -67,11 +76,11 @@ class Example(Frame):
                 for i in range(brushSize):
                     for j in range(brushSize):
                         for k in range(len(currentTileImg)):
-                            tempImage.paste(currentTileImg[k], (((currentTileCord[k][0]-minX)+tileX+i*(maxX-minX+1)) * tileSize,
-                                                                ((currentTileCord[k][1]-minY)+tileY+j*(maxY-minY+1)) * tileSize))
+                            tempImage.paste(currentTileImg[k],
+                                            (((currentTileCord[k][0]-minX)+tileX+i * (maxX-minX+1)) * tileSize,
+                                             ((currentTileCord[k][1]-minY)+tileY+j * (maxY-minY+1)) * tileSize))
 
                 tempImage = ImageTk.PhotoImage(tempImage)
-
                 levelMap.img = tempImage  # keep a reference so it's not garbage collected
                 levelMap['image'] = tempImage
             else:
@@ -104,23 +113,26 @@ class Example(Frame):
             tileX = floor(x / 400 * tempImage.size[0] / tileSize)
             tileY = floor(y / 400 * tempImage.size[1] / tileSize)
 
-            currentTileCord.append((tileX, tileY))
+            if (tileX,tileY) not in currentTileCord:
+                currentTileCord.append((tileX, tileY))
 
-            for tile in currentTileCord:
-                tempDraw.rectangle(
-                    ((tile[0] * tileSize-1, tile[1] * tileSize-1), ((tile[0]+1) * tileSize, (tile[1]+1) * tileSize)),
-                    width=1, outline=10)
+                for tile in currentTileCord:
+                    tempDraw.rectangle(
+                        ((tile[0] * tileSize-1, tile[1] * tileSize-1), ((tile[0]+1) * tileSize, (tile[1]+1) * tileSize)),
+                        width=1, outline=10)
 
-            tempImage = tempImage.resize((400, 400))
-            tempImage = ImageTk.PhotoImage(tempImage)
+                tempImage = tempImage.resize((400, 400))
+                tempImage = ImageTk.PhotoImage(tempImage)
 
-            tileset.img = tempImage  # keep a reference so it's not garbage collected
-            tileset['image'] = tempImage
+                tileset.img = tempImage  # keep a reference so it's not garbage collected
+                tileset['image'] = tempImage
 
-            currentTileImg.append(tileSetImage.crop((tileX * tileSize, tileY * tileSize,
-                                                     (tileX+1) * tileSize,
-                                                     (tileY+1) * tileSize)))
-            print("Chosen Tile:", (tileX, tileY))
+                currentTileImg.append(tileSetImage.crop((tileX * tileSize, tileY * tileSize,
+                                                         (tileX+1) * tileSize,
+                                                         (tileY+1) * tileSize)))
+                print("Chosen Tile:", (tileX, tileY))
+            else:
+                print("Tile already selected")
 
         tileset.bind('<Button-1>', chooseActiveTile)
 
@@ -238,16 +250,54 @@ class Example(Frame):
         # --------------------------------------------------------------------------------------------------------------
         # Choose a preexisting Map
         def chooseMap():
+            global previousMaps
             global mapImageBase, mapImage
             mapFilename = askopenfilename()
             mapImage = Image.open(mapFilename).resize((400, 400))
             mapTempImage = ImageTk.PhotoImage(mapImage)
             levelMap.img = mapTempImage
             levelMap['image'] = mapTempImage
+            previousMaps = [levelMap]
 
         # Rest map to blank
         chooseTileSetButton = Button(self, text="Choose Map", command=chooseMap)
         chooseTileSetButton.grid(row=4, column=11)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # Undo's a change
+        def undo():
+            global mapImage
+            if len(previousMaps) > 0:
+                print("Undoing Action")
+                nextMaps.append(mapImage)
+                mapImage = previousMaps.pop()
+                mapTempImage = ImageTk.PhotoImage(mapImage)
+                levelMap.img = mapTempImage
+                levelMap['image'] = mapTempImage
+            else:
+                print("Cannot Undo")
+
+        # Saves the Map
+        undoButton = Button(self, text="Undo", command=undo)
+        undoButton.grid(row=5, column=7)
+
+        # --------------------------------------------------------------------------------------------------------------
+        # Redo  a change
+        def redo():
+            global mapImage
+            if len(nextMaps) > 0:
+                print("Redoing Action")
+                previousMaps.append(mapImage)
+                mapImage = nextMaps.pop()
+                mapTempImage = ImageTk.PhotoImage(mapImage)
+                levelMap.img = mapTempImage
+                levelMap['image'] = mapTempImage
+            else:
+                print("Cannot Redo")
+
+        # Saves the Map
+        redoButton = Button(self, text="Redo", command=redo)
+        redoButton.grid(row=5, column=8)
 
 
 def main():
