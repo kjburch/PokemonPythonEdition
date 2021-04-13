@@ -265,8 +265,7 @@ class Example(Frame):
             mapTempImage = ImageTk.PhotoImage(mapImage)
             # Change canvas image
             # Assign new image
-            levelMap.path = ImageTk.PhotoImage(mapTempImage)
-            levelMap._CanvasImage__show_image()
+            levelMap.updateImage(mapTempImage)
             previousMaps = [levelMap]
 
         # Rest map to blank
@@ -281,10 +280,8 @@ class Example(Frame):
                 print("Undoing Action")
                 nextMaps.append(mapImage)
                 mapImage = previousMaps.pop()
-                mapTempImage = ImageTk.PhotoImage(mapImage)
                 # Assign new image
-                levelMap.path = mapTempImage
-                levelMap._CanvasImage__show_image()
+                levelMap.updateImage(mapImage)
             else:
                 print("Cannot Undo")
 
@@ -300,10 +297,8 @@ class Example(Frame):
                 print("Redoing Action")
                 previousMaps.append(mapImage)
                 mapImage = nextMaps.pop()
-                mapTempImage = ImageTk.PhotoImage(mapImage)
                 # Assign new image
-                levelMap.path = mapTempImage
-                levelMap._CanvasImage__show_image()
+                levelMap.updateImage(mapImage)
             else:
                 print("Cannot Redo")
 
