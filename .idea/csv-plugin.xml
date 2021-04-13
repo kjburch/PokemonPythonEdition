@@ -3,6 +3,13 @@
   <component name="CsvFileAttributes">
     <option name="attributeMap">
       <map>
+        <entry key="C:\Users\kyleb\PycharmProjects\autoBloons\main.py">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\Game\mapHandler.py">
           <value>
             <Attribute>
@@ -38,6 +45,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\Toolkit\Map_Maker.py">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\Toolkit\Object_Property_Handler.py">
           <value>
             <Attribute>
@@ -53,6 +67,13 @@
           </value>
         </entry>
         <entry key="\Toolkit\test.py">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
+        <entry key="\Toolkit\tilesets\zoomTest.py">
           <value>
             <Attribute>
               <option name="separator" value="," />

@@ -4,6 +4,7 @@ from tkinter import *
 from tkinter.ttk import Frame, Button, Label
 from tkinter.filedialog import askopenfilename, asksaveasfile
 from PIL import ImageTk, Image, ImageDraw
+from Toolkit import Resizable_Canvas
 
 tileSize = 16
 brushSize = 1
@@ -41,22 +42,20 @@ class Example(Frame):
         tileLabel.grid(row=1, column=3)
 
         # Current Map
-        levelMap = Label(self, borderwidth=10, relief="ridge")
+        levelMap = Resizable_Canvas.CanvasImage(self, mapImage)
         levelMap.grid(row=2, column=1, columnspan=7)
 
+        # Change canvas image
         img = ImageTk.PhotoImage(mapImage)
-        levelMap.img = img  # keep a reference so it's not garbage collected
-        levelMap['image'] = img
+        levelMap.path = img
 
         def paintMap(event):
             global currentTileImg, nextMaps
             if len(currentTileImg) > 0:
-
                 x, y = event.x, event.y
-                print("Location Clicked:", '{}, {}'.format(x, y))
 
                 tempImage = mapImage
-                previousMaps.append(tempImage.copy())
+                previousMaps.append(mapImage.copy())
                 nextMaps = []
 
                 if len(previousMaps) > 25:
@@ -64,10 +63,7 @@ class Example(Frame):
                 if len(nextMaps) > 25:
                     nextMaps.pop(0)
 
-                tileX = floor(x / tileSize)
-                tileY = floor(y / tileSize)
-
-                print("Chosen Tile:", (tileX, tileY))
+                tileX, tileY = levelMap.tileClicked(x, y, tileSize)
 
                 minX = min(currentTileCord, key=itemgetter(0))[0]
                 minY = min(currentTileCord, key=itemgetter(1))[1]
@@ -81,13 +77,12 @@ class Example(Frame):
                                             (((currentTileCord[k][0]-minX)+tileX+i * (maxX-minX+1)) * tileSize,
                                              ((currentTileCord[k][1]-minY)+tileY+j * (maxY-minY+1)) * tileSize))
 
-                tempImage = ImageTk.PhotoImage(tempImage)
-                levelMap.img = tempImage  # keep a reference so it's not garbage collected
-                levelMap['image'] = tempImage
+                # Assign new image
+                levelMap.updateImage(mapImage)
             else:
                 print("No tile currently selected")
 
-        levelMap.bind('<Button-1>', paintMap)
+        levelMap.canvas.bind('<Button-1>', paintMap)
 
         # ----------------------------------------------------------------------------------------------------------
 
@@ -238,10 +233,9 @@ class Example(Frame):
         def resetMap():
             global mapImage, mapImageBase
             print("Reset")
+            # Assign new image
             mapImage = mapImageBase.copy()
-            tempImage = ImageTk.PhotoImage(mapImageBase)
-            levelMap.img = tempImage  # keep a reference so it's not garbage collected
-            levelMap['image'] = tempImage
+            levelMap.updateImage(mapImage)
 
         # Rest map to blank
         resetButton = Button(self, text="Reset Map", command=resetMap)
@@ -256,6 +250,7 @@ class Example(Frame):
             tileTempImage = ImageTk.PhotoImage(tileSetImage.resize((400, 400)))
             tileset.img = tileTempImage  # keep a reference so it's not garbage collected
             tileset['image'] = tileTempImage
+            emptyBrush()
 
         # Rest map to blank
         chooseTileSetButton = Button(self, text="Choose TileSet", command=chooseTileset)
@@ -268,8 +263,10 @@ class Example(Frame):
             fileName = askopenfilename()
             mapImage = Image.open(fileName).resize((400, 400))
             mapTempImage = ImageTk.PhotoImage(mapImage)
-            levelMap.img = mapTempImage
-            levelMap['image'] = mapTempImage
+            # Change canvas image
+            # Assign new image
+            levelMap.path = ImageTk.PhotoImage(mapTempImage)
+            levelMap._CanvasImage__show_image()
             previousMaps = [levelMap]
 
         # Rest map to blank
@@ -285,8 +282,9 @@ class Example(Frame):
                 nextMaps.append(mapImage)
                 mapImage = previousMaps.pop()
                 mapTempImage = ImageTk.PhotoImage(mapImage)
-                levelMap.img = mapTempImage
-                levelMap['image'] = mapTempImage
+                # Assign new image
+                levelMap.path = mapTempImage
+                levelMap._CanvasImage__show_image()
             else:
                 print("Cannot Undo")
 
@@ -303,8 +301,9 @@ class Example(Frame):
                 previousMaps.append(mapImage)
                 mapImage = nextMaps.pop()
                 mapTempImage = ImageTk.PhotoImage(mapImage)
-                levelMap.img = mapTempImage
-                levelMap['image'] = mapTempImage
+                # Assign new image
+                levelMap.path = mapTempImage
+                levelMap._CanvasImage__show_image()
             else:
                 print("Cannot Redo")
 
@@ -315,7 +314,7 @@ class Example(Frame):
 
 def main():
     root = Tk()
-    root.geometry("900x600+200+200")
+    root.geometry("900x600+900+200")
     app = Example()
     root.mainloop()
 
